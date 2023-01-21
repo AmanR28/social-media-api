@@ -1,0 +1,51 @@
+version: '3.6'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: 'flask run -h 0.0.0.0 -p 5000'
+    ports:
+      - 5000:5000
+    environment:
+      - ENV=docker
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+
+
+  db:
+    container_name: postgres
+    restart: always
+    image: postgres:15.1
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=social
+    volumes:
+      # - ./social.db:/docker-entrypoint-initdb.d/init.sql
+      - postgres_social:/var/lib/postgresql
+    ports:
+      - 5431:5432
+    
+
+  graphql-engine:
+    image: hasura/graphql-engine:v2.17.0
+    restart: always
+    environment:
+      HASURA_GRAPHQL_METADATA_DATABASE_URL: postgresql://postgres:password@postgres/postgres
+      PG_DATABASE_URL: postgresql://postgres:password@postgres/social
+      HASURA_GRAPHQL_ENABLE_CONSOLE: "true" 
+      HASURA_GRAPHQL_DEV_MODE: "true"
+      HASURA_GRAPHQL_ENABLED_LOG_TYPES: startup, http-log, webhook-log, websocket-log, query-log
+      ## uncomment next line to set an admin secret
+      # HASURA_GRAPHQL_ADMIN_SECRET: myadminsecretkey
+    ports:
+      - 8080:8080
+    depends_on:
+      - db
+
+volumes:
+  postgres_social:
