@@ -40,3 +40,59 @@ def post_message():
         abort(500, Error.DB_ERROR)
     
     return jsonify('Message Posted'), 201
+
+
+# Route : Get Like Count for Particular Message
+@api.route('/messages/likes', methods=['GET'])
+def get_likes():
+    message_id = request.form.get("message_id")
+    if not message_id:
+        abort(400, Error.MISSING_MESSAGE_ID)
+
+    try:
+        msg = Messages.query.filter_by(id=message_id).first()
+    except Exception:
+        abort(500, Error.DB_ERROR)
+
+    return jsonify({'likes': msg.likes}), 200
+
+
+# Route : Like a Message
+@api.route('/messages/likes', methods=['POST'])
+def like_message():
+    message_id = request.form.get("message_id")
+    user_id = request.form.get("user_id")
+    if not message_id:
+        abort(400, Error.MISSING_MESSAGE_ID)
+    if  not user_id:
+        abort(400, Error.MISSING_USER_ID)
+    
+    try:
+        like = Likes(
+            message_id=message_id, user_id=user_id)
+        db.session.add(like)
+        db.session.commit()
+    except Exception:
+        abort(500, Error.DB_ERROR)
+    
+    return jsonify('Message Liked'), 201
+
+
+# Route : Dislike a Message
+@api.route('/messages/likes', methods=['DELETE'])
+def delete_message():
+    message_id = request.form.get("message_id")
+    user_id = request.form.get("user_id")
+    if not message_id:
+        abort(400, Error.MISSING_MESSAGE_ID)
+    if  not user_id:
+        abort(400, Error.MISSING_USER_ID)
+    
+    try:
+        like = Likes.query.filter_by(message_id=message_id, user_id=user_id).first()
+        db.session.delete(like)
+        db.session.commit()
+    except Exception:
+        abort(500, Error.DB_ERROR)
+    
+    return jsonify('Message Disliked'), 201

@@ -23,3 +23,8 @@ class Messages(db.Model):
             'timestamp': self.timestamp.isoformat()
         }
  
+# Model : Likes
+class Likes(db.Model):
+    message_id = db.Column(
+        db.Integer,db.ForeignKey('messages.id'), primary_key=True)
+    user_id = db.Column(db.Integer, primary_key=True)
